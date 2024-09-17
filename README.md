@@ -19,7 +19,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Acknowledgments
 
-- **Alexander Fleming** for the development of the Euler2D solver and the support throughout the project.
+- **Alexander Fleming** for the development of the Euler2D solver and the consistent support throughout the project.
 
 ---
 
