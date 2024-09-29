@@ -3,6 +3,12 @@ function load_sim_data(filename; T=Float64)
 	return Euler2D.load_euler_sim((filename); T)
 end
 
+
+#placeholder function for .celltape files, which are structured differently than EulerSim (.tape) files
+function load_cell_data(filename; T=Float64)
+    return nothing
+
+
 #Returns matrix with pressure data
 function compute_pressure_data(frame, data::EulerSim{2, 4, T}) where {T}
     (t, u_data) = nth_step(data, frame)
