@@ -233,4 +233,38 @@ function blank(d1p::Matrix{T}, d2p::Matrix{T}, eps1::T = 0.1, eps2::T = 10e-4) w
     return blanked
 end
 
-#function findShock2D(frame, data::EulerSim{2,4,T})
+
+"""
+Finds shock points. Normal vectors use the pressure gradient additionally as per shock2d.julia
+"""
+function findShock2D(frame, data::EulerSim{2,4,T}) where {T}
+#DETECTION ALGORITHM
+
+    #find shock points
+    #d2p, d1p according to article. 
+    d1p1 = delta_1p(frame, data);
+
+    d2p = delta_2p(frame, data, d1p1);
+
+    #eps1 = 0.15, eps2 = 10e-5.
+    #tweak with eps1. eps2 is ok.
+    blanked = blank(d1p1, d2p, 0.15, 10e-5);
+
+    begin
+        #Indicate shock points as booleans and store the points in a list. Probably not directly necessary.
+        
+        blanked_bool = falses(size(blanked))
+        blanked_bool .= blanked .> 0 
+        
+        shocklist = []
+        for i in 1:size(blanked_bool, 1)
+            for j in 1:size(blanked_bool, 2)
+                if blanked_bool[i, j] == true
+                    push!(shocklist, (i, j))
+                end
+            end
+        end
+    end
+
+    return shocklist
+end
