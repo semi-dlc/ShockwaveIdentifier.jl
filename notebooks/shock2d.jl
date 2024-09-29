@@ -1,6 +1,7 @@
 #version 1.4.1
 #18.Sep.24
 
+#not a notebook, but a script.
 
 #A 500 x 500 grid has 25000 cell.
 
