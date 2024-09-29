@@ -137,7 +137,7 @@ function plot_1d_heatmap(magnitude, filename::String)
     savefig(heatmap_plot, filename)
 end
 
-#Plots pressure and velocity for 2d grid
+#Plots pressure and velocity for 2d grid. For debugging purposes mainly!
 function plotframe2D(frame, data::EulerSim{2, 4, T}) where {T}
     (t, u_data) = nth_step(data, frame)
     xs, ys = cell_centers(data)
@@ -210,4 +210,77 @@ function plot_d2p(frame, data::EulerSim{2,4,T}, save_dir::AbstractString) where 
     filename = joinpath(save_dir, "delta_2p_$(datestr)_frame_$(lpad(frame, 3, '0')).png")
     savefig(delta_2rho_plot, filename)
 
+end
+
+"""
+Plots detected shock points not including normal vectors.
+Use STORE_PLOT because of compatibility reasons. Should be set to true when a plot is desired.
+blanked: returned values from blank()
+"""
+function plot_shock_points(frame, data::EulerSim{2,4,T}, save_dir::AbstractString, blanked, STORE_PLOT::Bool=True) where {T}
+    shockpoint_plot = heatmap(
+                    blanked, 
+                    title="Proposed Shocks at step $frame", 
+                    xlabel="X-axis", 
+                    ylabel="Y-axis", 
+                    color=:viridis,
+                    aspect_ratio=1,  # Ensures the heatmap is square
+                    #size= (5000,5000)
+                    )
+                
+    plot(shockpoint_plot)
+    if STORE_PLOT
+        filename = joinpath(save_dir, "shockpoints_$(datestr)_frame_$(lpad(frame, 3, '0')).png")
+        savefig(shockpoint_plot, filename)
+    end
+end
+
+"""
+Plots detected shock points including normal vectors.
+Use STORE_PLOT because of compatibility reasons. Should be set to true when a plot is desired.
+
+shocklist: List of shock points. Might make sense to incorporate a matrix in the form of blanked later.
+
+"""
+function plot_shock(frame, data::EulerSim{2,4,T}, save_dir::AbstractString, shocklist, STORE_PLOT::Bool=True) where {T}
+    shock_dir = [normalize(gradient_2d(frame,data,compute_pressure_data)[i,j]) for (i,j) in shocklist]
+    
+    shockplot = scatter(
+        [p[1] for p in shocklist], 
+        [p[2] for p in shocklist], 
+        color=:green,
+        legend=false, 
+        title = "Shocks with directions step $frame",
+        xlabel="X", ylabel="Y")
+    
+    
+    """
+    Used in the subsequent quiver plot to determine how few arrows are plotted. higher density -> lower amount of arrows, contraintuitively.
+    Set to 1 to see all arrows. 
+    """
+    arrow_density = 10
+    
+    if arrow_density < 1
+        arrow_density = 1
+    end
+    quiver!(
+        #higher arrow density -> more space between each arrow
+        [p[1] for p in shocklist[1:arrow_density:end]], 
+        [p[2] for p in shocklist[1:arrow_density:end]], 
+        quiver=( [10 .* n[1] for n in shock_dir[1:arrow_density:end]], [10 .* n[2] for n in shock_dir[1:arrow_density:end]]), 
+        color=:red, 
+        legend=:false,  # Add legend to the top right corner
+        title= "Suggested Shocks with directions step $frame",
+        xlabel="X", ylabel="Y", 
+        size = (1000,1000),
+        
+        arrow=Plots.arrow(:closed, :head,0.1, 0.1),
+        )
+    
+    plot(shockplot) 
+
+    if STORE_PLOT 
+        filename = joinpath(save_dir, "shocks_wDirection_$(datestr)_frame_$(lpad(frame, 3, '0')).png")
+        savefig(shockplot, filename)
+    end
 end
